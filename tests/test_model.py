@@ -8,12 +8,12 @@ from model import RaceOdds, check_sum, compute, harville_benter, load_weights, v
 
 
 def synth_race(n=12, seed=0, takeout=0.273):
-    """단승확률에서 Harville로 풀 배당을 만들고 삼쌍승에만 잡음을 섞은 합성 경주."""
+    """Synthetic race: pool odds built from Dirichlet win probabilities via Harville, with noise in the trifecta only."""
     rng = np.random.default_rng(seed)
     p = rng.dirichlet(np.ones(n) * 1.5)
-    P = harville_benter(p, (0.76, 0.64))                  # 무효 칸은 0, 합 1
+    P = harville_benter(p, (0.76, 0.64))                  # invalid cells are 0, sums to 1
     valid = P > 0
-    # 삼쌍승: 조합별 잡음을 섞은 뒤 다시 정규화 → Σ1/배당 = 1/(1-t) 를 정확히 만족
+    # trifecta: add per-combination noise, renormalize so that Σ 1/odds = 1/(1-t) exactly
     Q = np.where(valid, P * np.exp(rng.normal(0, 0.3, P.shape)), 0.0)
     Q /= Q.sum()
     race = RaceOdds(n=n)
@@ -58,7 +58,7 @@ def test_all_models_run():
     race = synth_race()
     for m in ("trio_exa", "trio_exa_win", "market_all"):
         if m == "market_all":
-            continue  # 복승·복연승 입력이 없으면 생략
+            continue  # skipped: needs quinella and quinella place inputs
         if m == "trio_exa_win":
             race.win = {i + 1: 5.0 for i in range(race.n)}
         compute(race, W, model=m)

@@ -1,9 +1,16 @@
 {
- "lam_w": [
+ "_doc": {
+  "lam_model": "Harville-Benter exponents (lambda2, lambda3) fitted on fundamental-model win probabilities, 2019-2024",
+  "lam_win": "Harville-Benter exponents fitted on win-pool implied probabilities, 2019-2024",
+  "names": "feature order: model=fundamental model HB, tri=trifecta pool, trio=trio pool, exa=exacta pool, qnl=quinella pool, qpl=quinella place pool (sum of 3 pair logs), win=win pool HB",
+  "weights": "conditional-logit weights fitted on 2024 races (ridge 0.01); cols index into names",
+  "takeout": "takeout backed out from final odds"
+ },
+ "lam_model": [
   0.7633818029738899,
   0.6397126057895357
  ],
- "lam_m": [
+ "lam_win": [
   0.7734554637962715,
   0.6521251428849055
  ],
@@ -17,7 +24,7 @@
   "win"
  ],
  "weights": {
-  "모델만": {
+  "model_only": {
    "cols": [
     0
    ],
@@ -25,7 +32,7 @@
     1.0178102715483601
    ]
   },
-  "삼쌍승 풀만": {
+  "tri_only": {
    "cols": [
     1
    ],
@@ -33,7 +40,7 @@
     0.967259423694408
    ]
   },
-  "시장 풀 전체": {
+  "market_pools": {
    "cols": [
     1,
     2,
@@ -51,7 +58,7 @@
     0.10610670300579596
    ]
   },
-  "모델+삼쌍승 풀": {
+  "model_tri": {
    "cols": [
     0,
     1
@@ -61,7 +68,7 @@
     0.5039122713455677
    ]
   },
-  "모델+시장 풀 전체": {
+  "model_market_pools": {
    "cols": [
     0,
     1,

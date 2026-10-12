@@ -1,10 +1,10 @@
-"""Ryoonicorn Theorem — 삼쌍승 가치 조합 계산 모듈.
+"""Ryoonicorn Theorem — trifecta value-combination engine.
 
-입력: 경주의 삼복승·쌍승·(선택) 단승 배당과 삼쌍승 전 조합 배당
-출력: 모든 순서조합의 결합확률, EV, 가치 조합 목록
+Input:  a race's trio, exacta and (optionally) win odds, plus odds for every trifecta combination
+Output: combined probability and EV for every ordered combination, and the list of value combinations
 
-가중치는 2024년 경주로 학습해 고정한 값(data/weights.json)이며, 논문 3.5절의
-조합 단위 조건부 로짓을 그대로 구현한다.
+Weights were fitted on 2024 races and are frozen (data/weights.json). This implements the
+combination-level conditional logit of Section 3.5 of the paper.
 """
 from __future__ import annotations
 
@@ -22,15 +22,16 @@ def load_weights(path: Path = WEIGHTS_PATH) -> dict:
     return json.loads(Path(path).read_text(encoding="utf-8"))
 
 
-# ---------------------------------------------------------------- 배당 → 확률
+# ---------------------------------------------------------------- odds -> probabilities
 
 def implied_probs(odds: np.ndarray, unique_mask: np.ndarray, valid_mask: np.ndarray):
-    """배당 행렬을 풀 내재확률로 바꾼다. 결측/0은 그 풀 최솟값의 절반으로 채운다.
-    반환: (확률 행렬, 역산 공제율)"""
+    """Convert an odds array to pool implied probabilities. Missing/zero cells are filled
+    with half the pool's minimum probability.
+    Returns: (probability array, implied takeout)"""
     q = np.where(np.isnan(odds) | (odds <= 0), np.nan, 1.0 / odds)
     total = np.nansum(np.where(unique_mask, q, np.nan))
     if not np.isfinite(total) or total <= 0:
-        raise ValueError("배당이 비어 있습니다")
+        raise ValueError("no odds supplied")
     p = q / total
     floor = 0.5 * np.nanmin(np.where(valid_mask, p, np.nan))
     return np.where(np.isnan(p), floor, p), 1 - 1 / total
@@ -48,7 +49,7 @@ def sym3(a: np.ndarray) -> np.ndarray:
 
 
 def harville_benter(p: np.ndarray, lam: tuple[float, float]) -> np.ndarray:
-    """우승확률 → 1-2-3착 순서조합 확률 (논문 3.4절)."""
+    """Win probabilities -> 1st-2nd-3rd ordered-combination probabilities (paper Section 3.4)."""
     p = np.clip(np.asarray(p, float), 1e-6, None)
     p = p / p.sum()
     l2, l3 = lam
@@ -63,18 +64,18 @@ def harville_benter(p: np.ndarray, lam: tuple[float, float]) -> np.ndarray:
     return P / P.sum()
 
 
-# ---------------------------------------------------------------- 입력 구조
+# ---------------------------------------------------------------- input structure
 
 @dataclass
 class RaceOdds:
-    """한 경주의 배당. 말 번호는 1부터 n까지 연속이라고 가정(출주 취소마는 제외하고 재번호 없이 NaN)."""
+    """Odds for one race. Horse numbers run 1..n (scratched horses are simply absent -> NaN, no renumbering)."""
     n: int
-    trio: dict[tuple[int, int, int], float] = field(default_factory=dict)   # 순서 없는 세 마리 (a<b<c)
-    exa: dict[tuple[int, int], float] = field(default_factory=dict)         # 1착-2착 순서 있음
-    tri: dict[tuple[int, int, int], float] = field(default_factory=dict)    # 1-2-3착 순서 있음
-    win: dict[int, float] = field(default_factory=dict)                     # 선택
-    qnl: dict[tuple[int, int], float] = field(default_factory=dict)         # 선택
-    qpl: dict[tuple[int, int], float] = field(default_factory=dict)         # 선택
+    trio: dict[tuple[int, int, int], float] = field(default_factory=dict)   # unordered three horses (a<b<c)
+    exa: dict[tuple[int, int], float] = field(default_factory=dict)         # ordered 1st-2nd
+    tri: dict[tuple[int, int, int], float] = field(default_factory=dict)    # ordered 1st-2nd-3rd
+    win: dict[int, float] = field(default_factory=dict)                     # optional
+    qnl: dict[tuple[int, int], float] = field(default_factory=dict)         # optional
+    qpl: dict[tuple[int, int], float] = field(default_factory=dict)         # optional
 
     def _mat2(self, d, symmetric):
         a = np.full((self.n, self.n), np.nan)
@@ -91,20 +92,20 @@ class RaceOdds:
         return sym3(a) if symmetric else a
 
 
-# ---------------------------------------------------------------- 핵심 계산
+# ---------------------------------------------------------------- core computation
 
 @dataclass
 class Result:
-    probs: np.ndarray            # (n,n,n) 결합확률, 순서조합
-    ev: np.ndarray               # (n,n,n) 결합확률 × 삼쌍승 배당 (배당 없는 곳 NaN)
+    probs: np.ndarray            # (n,n,n) combined probability per ordered combination
+    ev: np.ndarray               # (n,n,n) combined probability x trifecta odds (NaN where no odds)
     tri_odds: np.ndarray
     takeout: dict[str, float]
     model_name: str
-    coverage: dict[str, float]   # 풀별 입력된 조합 비율
+    coverage: dict[str, float]   # share of combinations supplied, per pool
 
 
 def compute(race: RaceOdds, weights: dict, model: str = "trio_exa") -> Result:
-    """논문 3.5절: P(c) ∝ exp(Σ β_f · ln π_f(c)). model은 weights['weights']의 키."""
+    """Paper Section 3.5: P(c) ∝ exp(Σ β_f · ln π_f(c)). `model` is a key of weights['weights']."""
     n = race.n
     I, J, K = np.indices((n, n, n))
     valid3 = (I != J) & (I != K) & (J != K)
@@ -142,14 +143,14 @@ def compute(race: RaceOdds, weights: dict, model: str = "trio_exa") -> Result:
         w = np.array([race.win.get(i + 1, np.nan) for i in range(n)], float)
         q = np.where(np.isnan(w) | (w <= 0), np.nan, 1 / w)
         q = np.where(np.isnan(q), 0.5 * np.nanmin(q), q)
-        hb = harville_benter(q / q.sum(), tuple(weights["lam_m"]))
+        hb = harville_benter(q / q.sum(), tuple(weights["lam_win"]))
         feats["win"] = np.log(np.where(valid3, hb, 1.0))
     if "tri" in needed:
         m = race._mat3(race.tri, False)
         p, t = implied_probs(m, valid3, valid3); takeout["tri"] = t
         feats["tri"] = np.log(p)
     if "model" in needed:
-        raise ValueError("펀더멘털 모형(p_combo)은 경주성적 파이프라인이 필요해 현장 앱에서는 쓰지 않습니다. trio_exa 등을 쓰세요.")
+        raise ValueError("The fundamental model (p_combo) needs the race-results pipeline and is not used in the field app. Use trio_exa or similar.")
 
     score = sum(b * feats[names[c]] for c, b in zip(cols, beta))
     score = np.where(valid3, score, -np.inf)
@@ -166,8 +167,8 @@ def compute(race: RaceOdds, weights: dict, model: str = "trio_exa") -> Result:
 
 def value_combos(res: Result, threshold: float = 1.4, stake: float = 0.0, pool_total: float | None = None,
                  takeout: float = TAKEOUT["tri"]) -> list[dict]:
-    """EV > threshold 인 순서조합 목록 (EV 내림차순).
-    stake, pool_total(원)을 주면 논문 8.2절의 시장 충격 반영 배당·EV도 계산한다."""
+    """Ordered combinations with EV > threshold, sorted by EV descending.
+    If stake and pool_total (KRW) are given, also computes post-impact odds and EV (paper Section 8.2)."""
     n = res.probs.shape[0]
     out = []
     for i in range(n):
@@ -190,7 +191,7 @@ def value_combos(res: Result, threshold: float = 1.4, stake: float = 0.0, pool_t
 
 
 def check_sum(odds: dict, expected_takeout: float, tol: float = 0.03) -> dict:
-    """OCR 검산: Σ1/배당 가 1/(1−공제율)과 맞는지. 어긋나면 의심 항목(가장 큰 기여)도 돌려준다."""
+    """OCR sanity check: does Σ 1/odds match 1/(1 − takeout)? If not, also returns suspects (largest contributors)."""
     vals = {k: v for k, v in odds.items() if v and v > 0}
     if not vals:
         return {"ok": False, "sum": 0, "expected": 1 / (1 - expected_takeout), "suspects": []}

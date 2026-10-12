@@ -1,71 +1,77 @@
-# Ryoonicorn Theorem (유니콘 정리) — 삼쌍승 가치 조합 계산기
+# Ryoonicorn Theorem — trifecta value-combination calculator
 
-**Ryoonicorn Theorem (유니콘 정리)** — 패리뮤추얼 시장에 대한 경험적 명제:
+[한국어](README.ko.md) · [Paper (English)](paper/ryoonicorn-theorem-paper.md) · [논문 (한국어)](paper/ko/한국_경마_배당_시장의_정보_효율성_7개_승식_풀_검증.md)
 
-> 같은 사건에 여러 풀이 걸려 있을 때, 돈이 얇은 풀의 가격은 두꺼운 풀에 이미 들어 있는 정보를 다 반영하지 못한다.
-> 따라서 두꺼운 풀들의 내재확률로 얇은 풀의 가격을 재구성하면, 얇은 풀에서 공제율을 넘는 괴리가 생긴다.
+**The Ryoonicorn Theorem** — an empirical proposition about pari-mutuel markets:
 
-수학적으로 증명된 정리가 아니라 데이터로 검증된 규칙성이다. 수익의 원천은 경주에 대한 지식이 아니라 풀 사이 돈의 분포이므로,
-같은 구조의 다른 시장(경륜·경정, 해외 이색 승식 등)에서도 성립하는지는 별도 검증이 필요하다.
+> When several pools are written on the same event, prices in a thin pool fail to reflect information already contained in the thick pools.
+> Reconstructing the thin pool's prices from the thick pools' implied probabilities therefore reveals mispricing larger than the takeout.
 
-**한국 경마에서 검증** (서울·부산경남): 두꺼운 풀 = 삼복승·쌍승, 얇은 풀 = 삼쌍승(경주당 약 925조합, 매출 중앙값 약 5.3억 원).
-두 풀의 내재확률을 조합 단위 조건부 로짓으로 결합하면 삼쌍승 풀 자체보다 경주당 로그우도 +0.019~0.027 더 정확하고,
-EV > 1.4 인 순서조합 전체를 사면 최종 배당 기준 양의 기대수익이 남는다. 2024년 학습, 2025~ 검증, 2026-10부터 전향 검증 중.
+It is a regularity verified on data, not a mathematically proven theorem. The edge comes from how money is distributed across pools, not from knowledge of the horses, so whether it holds in other markets with the same structure (Korean keirin and boat racing, exotic pools abroad such as Japan's 3連単 or Hong Kong's Triple Trio, combination pari-mutuel sports pools) needs separate testing.
 
-마감 7분 전 배당 화면 **사진 3장**(삼복승·쌍승·삼쌍승)을 올리면, 결합확률 × 배당(EV)이 기준을 넘는
-삼쌍승 조합을 **전부**(12두 기준 보통 35~47개) 뽑아 준다. 사람이 고르지 않는다.
+## Verified in Korean horse racing
 
-논문 「한국 경마 배당 시장은 공개 정보를 얼마나 효율적으로 반영하는가: 7개 승식 풀의 사전 등록 검증」
-3.4~3.5절·8절의 모형을 그대로 구현했다. 논문 전문: [`paper/`](paper/한국_경마_배당_시장의_정보_효율성_7개_승식_풀_검증.md) 가중치는 2024년 경주로 학습해 고정(`data/weights.json`),
-사전 등록 문서는 `data/PREREG_exotic.md`.
+Seoul and Busan-Gyeongnam, 2019–2026, 12,824 races, final odds for every combination in all seven pools (public KRA data).
 
-## 실행
+- **Thick pools:** trio (any order, ~154 combinations per race, KRW 0.7–1.1 billion) and exacta.
+- **Thin pool:** trifecta (exact order, ~925 combinations per race, median turnover ~KRW 530 million; about 20% of combinations sit at the 9999.9 odds cap).
+- A conditional logit over combinations, fed only trio and exacta implied probabilities, is **+0.019 to +0.027 log-likelihood per race more accurate** than the trifecta pool's own prices. The trifecta pool's own weight in the combined model is just 0.10.
+- Fundamental handicapping (78 features: form, jockey, trainer, distance, weight, ratings…) adds nothing once the trio and exacta pools are in. Neither do Korea-only training records (swimming, daily workouts, routine regularity) — all failed pre-registered tests.
+- Value betting on final odds, EV = P(combination) × trifecta odds > 1.4, two-pool model, 12-runner races: **+43% after the 27.3% takeout**, about 35 bets per race, one hit every 41 races, very wide CI (−56% to +180%).
+- Market impact: with pool turnover data, the edge survives stakes up to about **KRW 56,000 per combination** (breakeven).
+- The value is spread thinly over 35–47 low-popularity combinations per race. It cannot be shortlisted by probability, and it cannot be found from the top-40 odds board the track displays: you need every trifecta combination's odds.
+
+Weights were fitted on 2024 races and frozen (`data/weights.json`); evaluation is on 2025-01 to 2026-09; prospective validation with pre-close odds runs from 2026-10. The pre-registration document is `data/PREREG_exotic.md`. Full details: [the paper](paper/ryoonicorn-theorem-paper.md).
+
+## What the app does
+
+Seven minutes before the close, upload **three photos** of the odds screens (trio, exacta, trifecta). The app reads them, checks the numbers, and returns **every** trifecta combination whose combined probability × odds exceeds the threshold — typically 35–47 in a 12-runner race. No human picking.
+
+## Run
 
 ```bash
 pip install -r requirements.txt
-export ANTHROPIC_API_KEY=...        # 사진 인식(비전 OCR)에만 사용. 텍스트 입력만 쓰면 불필요
+export ANTHROPIC_API_KEY=...        # only for reading photos (Claude vision); not needed for pasted text
 streamlit run app/streamlit_app.py
 ```
 
-## 사용 순서
+## How to use
 
-1. 마감 7분 전, 삼복승·쌍승·삼쌍승 **전 조합** 배당 화면을 촬영(승식당 여러 페이지면 여러 장).
-2. 앱에 경마장·경주·출주 두수를 넣고 사진 업로드 → **조합 계산**.
-3. 검산: 승식별 Σ(1/배당)이 1/(1−공제율)과 ±3% 안에 들면 정상. 어긋나면 의심 조합을 화면과 대조.
-4. 구매 목록(EV > 기준) 전체를 발매기에 입력. 20개 미만이면 그 경주는 건너뛴다.
-5. 경주 후 확정 배당·착순을 `data/log.jsonl`의 해당 기록에 추가 → 전향 검증(2026-10~) 집계.
+1. Seven minutes before the close, photograph the **full-combination** odds screens for trio, exacta and trifecta (several photos per pool if it spans pages).
+2. Enter racecourse, race number and field size, upload the photos → **Compute combinations**.
+3. Sanity check: for each pool, Σ(1/odds) should be within ±3% of 1/(1 − takeout). If not, compare the flagged combinations with the screen.
+4. Bet the whole list (EV > threshold). If there are fewer than 20 combinations, skip the race.
+5. After the race, add final odds and the result to the matching record in `data/log.jsonl` for the forward-validation tally.
 
-## 고정 규칙
+No photos? Paste odds as text, one per line: `1-2-3 1234.5`.
 
-| 항목 | 값 |
+## Fixed rule
+
+| Item | Value |
 |---|---|
-| 모형 | Ryoonicorn Theorem (유니콘 정리) (`trio_exa`: 삼복승 + 쌍승 결합), 2024년 학습 가중치 고정 |
-| 기준 | EV > 1.4 (앱에서 1.2~1.6 조정 가능, 기본 1.4) |
-| 구매 | 기준 넘는 조합 **전부**, 조합당 1,000~10,000원 |
-| 건너뜀 | 가치 조합 20개 미만 |
-| 기록 | 사전 배당·최종 배당·적중 여부 |
+| Model | Ryoonicorn Theorem (`trio_exa`: trio + exacta combination), 2024 weights frozen |
+| Threshold | EV > 1.4 (adjustable 1.2–1.6 in the app, default 1.4) |
+| Bets | **every** combination above the threshold, KRW 1,000–10,000 each |
+| Skip | fewer than 20 value combinations |
+| Record | pre-close odds, final odds, hit or miss |
 
-백테스트(2025~, 12두, 최종 배당): 수익률 +43%, 41경주당 1회 적중, 신뢰구간 넓음.
-시장 충격 손익분기 약 5.6만 원/조합 — 그 이상 걸면 내 베팅이 배당을 깎는다.
+## Formulas
 
-## 수식
-
-풀 f의 내재확률 π_f(c) = (1/O_c) / Σ(1/O). 쌍승·단승처럼 차원이 낮은 풀은 순서조합 c=(i,j,k)에
-브로드캐스트(단승은 Harville–Benter λ₂=0.763, λ₃=0.640으로 3착 확률화).
+Implied probability of combination c in pool f: π_f(c) = (1/O_c) / Σ(1/O). Lower-dimensional pools (exacta, win) are broadcast onto ordered combinations c = (i, j, k); the win pool is converted to 1-2-3 probabilities with Harville–Benter (λ₂ = 0.773, λ₃ = 0.652).
 
 P(c) ∝ exp( Σ_f β_f · ln π_f(c) ),  EV(c) = P(c) × O_tri(c)
 
-시장 충격: 조합 c의 기존 매입액 A_c = S(1−t)/O_c, 내 베팅 B 후 배당 O'_c = (S+B)(1−t)/(A_c+B).
+Market impact: existing money on c, A_c = S(1−t)/O_c; odds after your stake B, O'_c = (S+B)(1−t)/(A_c+B).
 
-## 구조
+## Repository layout
 
 ```
-app/model.py          결합확률·EV·가치 조합·검산 (순수 numpy, 테스트 대상)
-app/ocr.py            사진 → 배당 (Claude 비전) / 텍스트 파서
+app/model.py          combined probability, EV, value combinations, sanity check (pure numpy, tested)
+app/ocr.py            photo → odds (Claude vision) / text parser
 app/streamlit_app.py  UI
-data/weights.json     고정 가중치, λ, 공제율
-data/PREREG_exotic.md 사전 등록 문서
-paper/                논문 (md)
+data/weights.json     frozen weights, λ, takeout
+data/PREREG_exotic.md pre-registration (English; original Korean in PREREG_exotic.ko.md)
+paper/                paper (English); paper/ko/ original Korean
 tests/                pytest
 ```
 
@@ -73,9 +79,13 @@ tests/                pytest
 python -m pytest -q
 ```
 
-## 주의
+## Using it outside Korea
 
-- 한국마사회는 실시간 배당을 API로 주지 않는다. 이 도구는 **사용자가 찍은 사진**만 읽는다.
-- 마권 구매와 연결되지 않는다. 가상 기록·검증 도구이며, 베팅 결과에 대한 책임은 사용자에게 있다.
-- 경마 관계자는 소속 기관의 베팅 제한 규정을 먼저 확인할 것.
-- API 키는 환경변수로만. `data/log.jsonl`, `.env`는 커밋하지 않는다.
+`app/model.py` is market-agnostic: give `RaceOdds` a trio dict `{(a,b,c): odds}` with a<b<c, an exacta dict `{(i,j): odds}` and a trifecta dict `{(i,j,k): odds}`, then call `compute()` and `value_combos()`. The frozen weights were fitted on Korean pools, so for another market refit them on that market's historical final odds before trusting the EVs.
+
+## Caveats
+
+- KRA does not publish live odds through its API. This tool only reads **photos the user takes**.
+- It is not connected to ticket purchasing. It is a record-keeping and validation tool; betting outcomes are the user's responsibility.
+- People working in racing should check their organization's betting restrictions first.
+- Keep API keys in environment variables only. Do not commit `data/log.jsonl` or `.env`.
