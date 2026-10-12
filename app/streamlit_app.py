@@ -17,11 +17,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from model import RaceOdds, TAKEOUT, check_sum, compute, load_weights, value_combos  # noqa: E402
 import ocr  # noqa: E402
 
-st.set_page_config(page_title="삼쌍승 가치 조합", page_icon="🐎", layout="centered")
+st.set_page_config(page_title="Ryoonicorn Theorem", page_icon="🐎", layout="centered")
 W = load_weights()
 LOG = Path(__file__).resolve().parent.parent / "data" / "log.jsonl"
 
-st.title("삼쌍승 가치 조합")
+st.title("Ryoonicorn Theorem")
+st.caption("삼쌍승 가치 조합 계산기")
 st.caption("마감 7분 전 배당 화면 3장 → 결합확률 × 배당 > 기준인 조합 전부. 사람이 고르지 않습니다.")
 
 # ---------------------------------------------------------------- 입력
@@ -130,5 +131,5 @@ if run:
     st.caption(f"기록 저장: {LOG.name} · 경주 후 확정 배당과 착순을 같은 경주에 추가하면 전향 검증 집계에 쓰입니다.")
 
 st.divider()
-st.caption("규칙(고정): 마감 7분 전 촬영 · 삼복승+쌍승 결합 모형(2024년 학습) · EV 기준 이상 전부 구매 · 조합당 1만 원 이하 · 20개 미만이면 건너뜀. "
+st.caption("규칙(고정): 마감 7분 전 촬영 · Ryoonicorn Theorem = 삼복승+쌍승 결합 모형(2024년 학습) · EV 기준 이상 전부 구매 · 조합당 1만 원 이하 · 20개 미만이면 건너뜀. "
            "최종 배당 백테스트(2025~, 12두) +43%, 41경주당 1회 적중, 신뢰구간 넓음. 이 도구는 마권 구매와 연결되지 않습니다.")
