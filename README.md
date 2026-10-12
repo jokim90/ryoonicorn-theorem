@@ -87,5 +87,4 @@ python -m pytest -q
 
 - KRA does not publish live odds through its API. This tool only reads **photos the user takes**.
 - It is not connected to ticket purchasing. It is a record-keeping and validation tool; betting outcomes are the user's responsibility.
-- People working in racing should check their organization's betting restrictions first.
 - Keep API keys in environment variables only. Do not commit `data/log.jsonl` or `.env`.
