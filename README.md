@@ -6,7 +6,7 @@
 삼쌍승 조합을 **전부**(12두 기준 보통 35~47개) 뽑아 준다. 사람이 고르지 않는다.
 
 논문 「한국 경마 배당 시장은 공개 정보를 얼마나 효율적으로 반영하는가: 7개 승식 풀의 사전 등록 검증」
-3.4~3.5절·8절의 모형을 그대로 구현했다. 가중치는 2024년 경주로 학습해 고정(`data/weights.json`),
+3.4~3.5절·8절의 모형을 그대로 구현했다. 논문 전문: [`paper/`](paper/한국_경마_배당_시장의_정보_효율성_7개_승식_풀_검증.md) 가중치는 2024년 경주로 학습해 고정(`data/weights.json`),
 사전 등록 문서는 `data/PREREG_exotic.md`.
 
 ## 실행
@@ -55,6 +55,7 @@ app/ocr.py            사진 → 배당 (Claude 비전) / 텍스트 파서
 app/streamlit_app.py  UI
 data/weights.json     고정 가중치, λ, 공제율
 data/PREREG_exotic.md 사전 등록 문서
+paper/                논문 (md)
 tests/                pytest
 ```
 
