@@ -10,15 +10,57 @@ This study tests the informational efficiency of seven pari-mutuel pool types in
 
 ## 1. Introduction
 
-Racetrack betting markets, as prediction markets with quickly resolved outcomes and publicly posted prices, have long been a classic setting for tests of market efficiency. Ali (1977) and Thaler & Ziemba (1988) documented the favorite–longshot bias, in which longshots are overbet in the win pool, and Hausch, Ziemba & Rubinstein (1981) used win-pool probabilities to find mispricing in the place and show pools, showing that cross-pool inconsistencies can be turned into profit. Asch & Quandt (1987) used the exacta pool, and Snowberg & Wolfers (2010) used exacta, quinella and trifecta prices jointly to show that the bias stems from misperception of probabilities. Benter (1994) proposed a framework that combines a fundamental conditional logit with market probabilities log-linearly, and Harville (1973) and Lo & Bacon-Shone (1994) studied models that derive finishing-order probabilities from win probabilities.
+### 1.1 How this study began
 
-The prior literature leaves two gaps. First, cross-pool comparisons have mostly evaluated exotic pools against the win pool; pricing exotic pools from one another (the trifecta from the trio and exacta) has not been studied. Second, Korean racing is a rare market that publishes, as open public data, the final odds of every combination in all seven bet types together with daily training records, yet no study has used these data to test efficiency.
+This study began in the broadcast booth. The author produces and presents the Korea Racing Authority's international race broadcasts, has delivered more than 1,000 live race broadcasts, and studies applied AI in the M.S. in Artificial Intelligence program at Yonsei University. Watching the odds board race after race raised two questions.
+
+First, KRA publishes every day, as open public data, material that almost no other jurisdiction releases: racehorses' daily training records and swimming-training records (Korea Racing Authority, 2026). Academic handicapping models rely mainly on race-result variables such as past performance, jockey, trainer and race conditions (Bolton & Chapman, 1986; Benter, 1994), and we found no study that tests market efficiency with daily training time or swimming records. If these data carry information the market has not yet priced, they would be features absent from the literature. In particular, we wanted to test a trackside intuition: that a steady training routine is itself a sign of a healthy horse in stable condition.
+
+Second, from the track it is plain that the amount of money differs greatly across bet types. In the trifecta, money is spread thinly over hundreds of combinations, the racecourse displays odds only for the 40 most popular combinations, and trifecta odds barely move even just before the close. The suspicion was that information about the same race may be priced differently in different pools.
+
+The study's first result was the place gap. A single variable, the degree to which relative support in the win and place pools diverges, carried information beyond the fundamental model and win odds, and passed all three independent validations (Section 4). From then on, the central aim of the study was **to find anything more significant than the place gap**. We tested, in turn, Korea-only training records (swimming, seven daily-training features, routine regularity), race-result combinations that prior studies had not placed in one model (running style × track condition × distance, opponent composition, first-up × jockey), and market-response combinations (three-way disagreement, place gap by horse situation). **None of them surpassed the place gap or added information on top of it.** The training-load feature, chosen after seeing results, vanished in the sealed holdout (Section 7), and the pre-registered routine hypothesis had the expected sign but was not statistically confirmed.
+
+That failure redirected the study. If the market already digests public fundamental information, the remaining inefficiency may lie not in missing information but in the structure of the market itself: how money is distributed across pools. KRA's publication of final odds for every combination in all seven bet types made the second question testable. In the trifecta pool, information from the other pools alone improved per-race log-likelihood by +0.027 (Section 5). This is not new information about horses; it is a pricing inefficiency in which information already in the market fails to reach a thin pool, and because the prediction target differs (the 1st–2nd–3rd combination rather than the winner) it cannot be compared directly with the place gap. As information about horses, the most significant signal this study found remained the place gap.
+
+### 1.2 Related literature
+
+Racetrack betting markets, as prediction markets with quickly resolved outcomes and publicly posted prices, have long been a classic setting for tests of market efficiency. Surveying the field, Sauer (1998) concluded: "First, prices set in these markets, to a first approximation, are efficient forecasts of outcomes." This study asks where that first approximation breaks down. The related literature falls into three strands.
+
+**Biases in the win pool.** Ali (1977) and Thaler & Ziemba (1988) documented the favorite–longshot bias, in which longshots are overvalued in the win pool. Snowberg & Wolfers (2010) summarize the pattern as "longshots are overbet, while favorites are underbet," and, using exacta, quinella and trifecta prices jointly, show that it stems from misperception of probabilities rather than risk-love. The place-gap result in Section 4 is evidence that place-pool information partially corrects this bias.
+
+**Cross-pool inconsistency.** Hausch, Ziemba & Rubinstein (1981) used win-pool probabilities to find mispricing in the place and show pools and showed that cross-pool inconsistencies can be turned into profit. Studying the same race sold at several tracks, Hausch & Ziemba (1990) reported that "The data suggest that the odds vary, and they often vary dramatically, allowing arbitrage opportunities." Asch & Quandt (1987) tested the efficiency and profitability of exotic bets such as the exacta. Sections 5–6 of this study move that framework from win-versus-exotic comparisons to comparisons among exotic pools (pricing the trifecta from the trio and exacta).
+
+**Probability models.** Bolton & Chapman (1986) laid down the basic form of modern handicapping models: "A multinomial logit model of the horse racing process is posited and estimated on a data base of 200 races." Extending this in practice, Benter (1994) argued that "what is needed is a way to combine the judgements of two experts, (i.e. the fundamental model and the public)," and proposed a log-linear combination of fundamental and market probabilities. The baseline in Section 3.2 follows these two studies.
+
+Finishing-order probabilities start with Harville (1973), who framed the problem as "assessing the probabilities of the various possible orders of finish of a horse race" and gave a formula that computes them from win probabilities alone. Benter (1994), however, observed that under this formula "The tendency is for low probability horses to finish second and third more often than predicted," and Lo & Bacon-Shone (1994) likewise reported that "the probabilities produced by the Harville model have a systematic bias for the strongest and weakest horses." Section 3.4 follows this correction and estimates stage-wise exponents λ₂, λ₃.
+
+The literature leaves two gaps. First, cross-pool comparisons have mostly evaluated exotic pools against the win pool; pricing exotic pools from one another has not been studied. Second, Korean racing is a rare market that publishes, as open public data, final odds for every combination in all seven bet types together with daily training records, yet no study has used these data to test efficiency.
+
+### 1.3 Research questions
 
 This study answers three questions. (1) Does place-pool information contain information beyond the win pool and a fundamental model? (2) Are trio and trifecta pool prices improved by other pools and the fundamental model, and if so, does the improvement exceed the takeout? (3) Do training records published only in Korea contain information the market fails to reflect? To prevent false discoveries from multiple comparisons, feature definitions and decision criteria were fixed in writing in advance and scored only once (pre-registration), and all rejected results are reported.
 
+### 1.4 Scope of the investigation
+
+Before presenting results, we state the scope of the testing that led to these conclusions. There were 18 formal tests (Appendix A). Fourteen were feature tests for win-pool prediction, and only the place gap passed (two tests: the test period and the sealed holdout). The other twelve (seven on training records, five on race-result and market-response combinations) all failed. Of the four tests on combination pools, the two adding other information to the trifecta pool passed, the trio pool was more accurate than the alternatives, and the pre-registered primary test (does the fundamental model add information on top of all market pools?) was rejected. All rejected results are reported in the main text and appendices.
+
+| Item | Scope |
+| --- | --- |
+| Period | 2019-01 ~ 2026-10 (Seoul and Busan-Gyeongnam) |
+| Races / starters | 12,824 races / 143,239 starters |
+| Final odds | Every combination in seven bet types, about 1,400 combinations per race |
+| Training records | Daily training 2,465,789 rows, swimming 183,612 rows |
+| Pool turnover by bet type | 86,028 rows (11,907 trifecta races) |
+| Evaluation races | Win pool 3,132 races, combination pools 3,104 races (2025-01~2026-09); sealed holdouts 1,629 + 3,813 races |
+| Evaluation combinations | 3,348,982 trio and trifecta combinations (single-source comparison); about 2.9 million ordered-combination rows (multi-pool evaluation) |
+| Formal tests | 18: 4 passed, 11 rejected, 1 borderline, 1 selection bias, 1 market better |
+| Win-pool feature tests | 14: place gap passed twice; all 7 training-record tests and 5 race-result/market-response combination tests failed |
+| Pre-registered or sealed-holdout scoring | 4 (#10, #11, #14, #18) |
+| Exploratory analyses | 6 simple-blend backtests (E.2), 10 multi-pool backtests (E.3), 3 race-selection segments (E.6), 8 market-impact scenarios (E.8), 4 top-40-odds strategies (9.1), 4 shortlist sizes (9.2), 6 input-pool combinations (9.3), analysis of 98 trainers (D.5) |
+
 ## 2. Data
 
-All data were collected from the Korea Racing Authority (KRA) open APIs on the Korean public data portal (data.go.kr). The sample is thoroughbred racing at Seoul and Busan-Gyeongnam; Yeongcheon, which has many anomalous records from its early opening period, and Jeju, which races a different breed, are excluded. The 347 races with win odds recorded as 9999.9 (mostly Busan-Gyeongnam in 2020) are treated as odds errors and excluded.
+All data were collected from the Korea Racing Authority (KRA) open APIs on the Korean public data portal, data.go.kr (Korea Racing Authority, 2026). The sample is thoroughbred racing at Seoul and Busan-Gyeongnam; Yeongcheon, which has many anomalous records from its early opening period, and Jeju, which races a different breed, are excluded. The 347 races with win odds recorded as 9999.9 (mostly Busan-Gyeongnam in 2020) are treated as odds errors and excluded.
 
 | Data | API | Range | Size |
 | --- | --- | --- | --- |
@@ -592,9 +634,12 @@ The median amount already on the selected combinations is KRW 185,000. The stake
 - Ali, M. M. (1977). Probability and utility estimates for racetrack bettors. *Journal of Political Economy*, 85(4), 803–815.
 - Asch, P., & Quandt, R. E. (1987). Efficiency and profitability in exotic bets. *Economica*, 54(215), 289–298.
 - Benter, W. (1994). Computer-based horse race handicapping and wagering systems: A report. In D. B. Hausch, V. S. Y. Lo, & W. T. Ziemba (Eds.), *Efficiency of Racetrack Betting Markets*. Academic Press.
+- Bolton, R. N., & Chapman, R. G. (1986). Searching for positive returns at the track: A multinomial logit model for handicapping horse races. *Management Science*, 32(8), 1040–1060.
 - Harville, D. A. (1973). Assigning probabilities to the outcomes of multi-entry competitions. *Journal of the American Statistical Association*, 68(342), 312–316.
+- Hausch, D. B., & Ziemba, W. T. (1990). Arbitrage strategies for cross-track betting on major horse races. *Journal of Business*, 63(1), 61–78.
 - Hausch, D. B., Ziemba, W. T., & Rubinstein, M. (1981). Efficiency of the market for racetrack betting. *Management Science*, 27(12), 1435–1452.
-- Lo, V. S. Y., & Bacon-Shone, J. (1994). A comparison between two models for predicting ordering probabilities in multiple-entry competitions. *The Statistician*, 43(2), 317–327.
+- Korea Racing Authority. (2026). Race results (API4_3), integrated final odds (API160_1), daily training records (API18_1), swimming training (API216), racing turnover and final odds (API179_1). *Public Data Portal (data.go.kr)*, retrieved 12 October 2026.
+- Lo, V. S. Y., & Bacon-Shone, J. (1994). A comparison between two models for predicting ordering probabilities in multiple-entry competitions. *Journal of the Royal Statistical Society: Series D (The Statistician)*, 43(2), 317–327.
+- Sauer, R. D. (1998). The economics of wagering markets. *Journal of Economic Literature*, 36(4), 2021–2064.
 - Snowberg, E., & Wolfers, J. (2010). Explaining the favorite–long shot bias: Is it risk-love or misperceptions? *Journal of Political Economy*, 118(4), 723–746.
 - Thaler, R. H., & Ziemba, W. T. (1988). Anomalies: Parimutuel betting markets: Racetracks and lotteries. *Journal of Economic Perspectives*, 2(2), 161–174.
-- Korea Racing Authority. Race results (API4_3), integrated final odds (API160_1), daily training records (API18_1), swimming training (API216), racing turnover and final odds (API179_1). *Public Data Portal (data.go.kr)*, retrieved 12 October 2026.
