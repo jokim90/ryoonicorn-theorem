@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/logo.png" alt="Ryoonicorn Theorem" width="260">
+</p>
+
 # Ryoonicorn Theorem (유니콘 정리) — 삼쌍승 가치 조합 계산기
 
 [English](README.md)

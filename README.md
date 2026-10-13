@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/logo.png" alt="Ryoonicorn Theorem" width="260">
+</p>
+
 # Ryoonicorn Theorem — trifecta value-combination calculator
 
 [한국어](README.ko.md) · [Paper (English)](paper/ryoonicorn-theorem-paper.md) · [논문 (한국어)](paper/ko/한국_경마_배당_시장의_정보_효율성_7개_승식_풀_검증.md)
