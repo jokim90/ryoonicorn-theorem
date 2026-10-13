@@ -10,25 +10,29 @@ CSS = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Russo+One&family=Noto+Sans+KR:wght@400;500;700&display=swap');
 :root{--navy:#14193F;--mint:#8EF2C0;--mint-soft:#E9F8F0;--lav:#B9A2F7;--lav-deep:#6C4FD8;--gold:#FFC83D;--paper:#FBFAFF;}
-html, body, [class*="css"], .stApp {font-family:'Noto Sans KR',sans-serif;}
+html{font-size:21px;}  /* 기본 16px + 5px */
+html, body, [class*="css"], .stApp,
+.stApp *:not([data-testid="stIconMaterial"]):not([class*="material"]):not(svg):not(path){
+  font-family:'Black Han Sans','Noto Sans KR',sans-serif !important;font-weight:400 !important;letter-spacing:.02em;}
+:root{--gdg-font-family:'Black Han Sans','Noto Sans KR',sans-serif;}
 .stApp{background-color:var(--paper);%BG%}
 header[data-testid="stHeader"]{background:transparent;}
-.block-container{max-width:860px;padding-top:2rem;}
+.block-container{max-width:1000px;padding-top:2rem;}
 
 /* headings: angular, slanted display type */
 h1,h2,h3,.stSubheader{font-family:'Black Han Sans','Russo One','Noto Sans KR',sans-serif !important;letter-spacing:.01em;color:var(--navy);}
 h2,h3{display:inline-block;transform:skewX(-6deg);padding:.15rem .7rem;margin-top:1.4rem;
   background:var(--mint);border:3px solid var(--navy);border-radius:4px;box-shadow:4px 4px 0 var(--navy);}
 h3{background:var(--lav);}
-h2,h3{margin-bottom:.9rem !important;letter-spacing:.07em !important;font-weight:400 !important;font-size:1.55rem !important;line-height:1.5 !important;}
+h2,h3{margin-bottom:.9rem !important;letter-spacing:.07em !important;font-weight:400 !important;font-size:1.45rem !important;line-height:1.5 !important;}
 .stButton>button p, .stDownloadButton>button p{font-family:'Black Han Sans','Russo One',sans-serif !important;}
 h2 *, h3 *{transform:skewX(6deg);display:inline-block;}
 
 /* hero */
 .hero{text-align:center;margin:.2rem 0 1.2rem;}
 .hero img{width:min(380px,80%);filter:drop-shadow(0 6px 0 rgba(20,25,63,.12));}
-.hero .tag{font-family:'Black Han Sans','Russo One',sans-serif;color:var(--navy);margin-top:.4rem;font-size:1.05rem;letter-spacing:.02em;}
-.hero .sub{color:#4B5080;font-size:.92rem;max-width:620px;margin:.3rem auto 0;}
+.hero .tag{color:var(--navy);margin-top:.4rem;font-size:1.15rem;letter-spacing:.02em;}
+.hero .sub{color:#4B5080;font-size:.95rem;max-width:760px;margin:.3rem auto 0;}
 
 /* cards */
 div[data-testid="stFileUploader"] section, div[data-testid="stExpander"]{
@@ -56,7 +60,7 @@ div[data-baseweb="select"]>div, div[data-baseweb="input"]>div, div[data-baseweb=
 /* slider accent */
 div[data-baseweb="slider"] div[role="slider"]{background:var(--lav-deep);border:3px solid var(--navy);}
 hr{border-top:3px dashed var(--lav) !important;}
-.footnote{color:#4B5080;font-size:.8rem;}
+.footnote{color:#4B5080;font-size:.8rem;line-height:1.7;}
 </style>
 """
 
