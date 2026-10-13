@@ -15,15 +15,18 @@ import streamlit as st
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from model import RaceOdds, TAKEOUT, check_sum, compute, load_weights, value_combos  # noqa: E402
 import ocr  # noqa: E402
+import theme  # noqa: E402
 
-st.set_page_config(page_title="Ryoonicorn Theorem", page_icon="🦄", layout="centered")
+_FAVICON = Path(__file__).resolve().parent.parent / "assets" / "favicon.png"
+st.set_page_config(page_title="Ryoonicorn Theorem", page_icon=str(_FAVICON) if _FAVICON.exists() else "🦄",
+                   layout="centered")
+theme.inject(st)
 W = load_weights()
 LOG = Path(__file__).resolve().parent.parent / "data" / "log.jsonl"
 
-st.title("Ryoonicorn Theorem")
-st.caption("Trifecta value-combination calculator")
-st.caption("Three odds screens 7 minutes before the close → every combination with probability × odds above the threshold. "
-           "No human picking.")
+theme.hero(st, "Trifecta value-combination calculator",
+           "Three odds screens 7 minutes before the close → every combination with probability × odds above the "
+           "threshold. No human picking.")
 
 # ---------------------------------------------------------------- inputs
 c1, c2, c3 = st.columns(3)
@@ -138,7 +141,10 @@ if run:
                "for forward-validation tallies.")
 
 st.divider()
-st.caption("Fixed rule: photograph 7 minutes before the close · Ryoonicorn Theorem = trio + exacta combination model "
-           "(trained on 2024) · buy every combination above the EV threshold · at most KRW 10,000 per combination · "
-           "skip if fewer than 20. Final-odds backtest (2025~, 12 runners) +43%, one hit per 41 races, wide CI. "
-           "This tool is not connected to ticket purchasing.")
+st.markdown(
+    '<div class="footnote">Fixed rule: photograph 7 minutes before the close · Ryoonicorn Theorem = trio + exacta '
+    "combination model (trained on 2024) · buy every combination above the EV threshold · at most KRW 10,000 per "
+    "combination · skip if fewer than 20. Final-odds backtest (2025~, 12 runners) +43%, one hit per 41 races, wide CI. "
+    "This tool is not connected to ticket purchasing.</div>",
+    unsafe_allow_html=True,
+)
